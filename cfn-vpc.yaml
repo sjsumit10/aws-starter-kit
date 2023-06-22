@@ -1,0 +1,256 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Metadata:
+  Generator: "sjsumit10"
+Description: " VPC template - Public and Private subnets with NAT"
+Parameters:
+  VpcCidr:
+    Type: String
+  VpcName:
+    Type: String
+  PublicSubnetACidr:
+    Type: String
+  PublicSubnetBCidr:
+    Type: String
+  PrivateSubnetACidr:
+    Type: String
+  PrivateSubnetBCidr:
+    Type: String
+  
+Resources:
+    EC2VPC:
+        Type: "AWS::EC2::VPC"
+        Properties:
+            CidrBlock: !Ref VpcCidr 
+            EnableDnsSupport: true
+            EnableDnsHostnames: true
+            InstanceTenancy: "default"
+            Tags: 
+              - 
+                Key: "Name"
+                Value: !Ref VpcName
+    
+    
+    EC2PublicSubnetA:
+        Type: "AWS::EC2::Subnet"
+        Properties:
+            AvailabilityZone: !Sub "${AWS::Region}a"
+            CidrBlock: !Ref PublicSubnetACidr
+            VpcId: !Ref EC2VPC
+            MapPublicIpOnLaunch: false
+            Tags: 
+              - 
+                Key: "AssociatedNatgateway"
+                Value: "nat-086e19ac70593be33"
+              - 
+                Key: "SubnetType"
+                Value: "Public"
+              - 
+                Key: "Name"
+                Value: !Sub "public-${AWS::Region}a"
+              - 
+                Key: "OwnedBy"
+                Value: !Ref EC2VPC
+
+    EC2PublicSubnetB:
+        Type: "AWS::EC2::Subnet"
+        Properties:
+            AvailabilityZone: !Sub "${AWS::Region}b"
+            CidrBlock: !Ref PublicSubnetBCidr
+            VpcId: !Ref EC2VPC
+            MapPublicIpOnLaunch: false
+            Tags: 
+              - 
+                Key: "AssociatedNatgateway"
+                Value: "nat-086e19ac70593be33"
+              - 
+                Key: "SubnetType"
+                Value: "Public"
+              - 
+                Key: "Name"
+                Value: !Sub "public-${AWS::Region}b"
+              - 
+                Key: "OwnedBy"
+                Value: !Ref EC2VPC
+
+    EC2PrivateSubnetA:
+        Type: "AWS::EC2::Subnet"
+        Properties:
+            AvailabilityZone: !Sub "${AWS::Region}a"
+            CidrBlock: !Ref PrivateSubnetACidr
+            VpcId: !Ref EC2VPC
+            MapPublicIpOnLaunch: false
+            Tags: 
+              - 
+                Key: "SubnetType"
+                Value: "Private"
+              - 
+                Key: "Name"
+                Value: !Sub "private-${AWS::Region}a"
+              - 
+                Key: "OwnedBy"
+                Value: !Ref EC2VPC
+
+    EC2PrivateSubnetB:
+        Type: "AWS::EC2::Subnet"
+        Properties:
+            AvailabilityZone: !Sub "${AWS::Region}b"
+            CidrBlock: !Ref PrivateSubnetBCidr
+            VpcId: !Ref EC2VPC
+            MapPublicIpOnLaunch: false
+            Tags: 
+              - 
+                Key: "SubnetType"
+                Value: "Private"
+              - 
+                Key: "Name"
+                Value: !Sub "private-${AWS::Region}b"
+              - 
+                Key: "OwnedBy"
+                Value: !Ref EC2VPC
+
+
+    EIPAddress1:
+        Type: AWS::EC2::EIP
+        Properties:
+          Domain: "vpc"
+          Tags: 
+            - 
+              Key: "OwnedBy"
+              Value: !Ref EC2VPC
+
+    EIPAddress2:
+        Type: AWS::EC2::EIP
+        Properties:
+          Domain: "vpc"
+          Tags: 
+            - 
+              Key: "OwnedBy"
+              Value: !Ref EC2VPC
+
+
+    EC2InternetGateway:
+        Type: "AWS::EC2::InternetGateway"
+        Properties:
+            Tags: 
+              - 
+                Key: "Name"
+                Value: "vpc-ig"
+              - 
+                Key: "OwnedBy"
+                Value: !Ref EC2VPC
+
+    EC2NatGatewayA:
+        Type: "AWS::EC2::NatGateway"
+        Properties:
+            SubnetId: !Ref EC2PublicSubnetA
+            Tags:
+              - 
+                Key: "Name"
+                Value: !Sub "${AWS::Region}a-nat-gw"
+              - 
+                Key: "OwnedBy"
+                Value: !Ref EC2VPC
+            AllocationId: !GetAtt EIPAddress1.AllocationId
+
+    EC2NatGatewayB:
+        Type: "AWS::EC2::NatGateway"
+        Properties:
+            SubnetId: !Ref EC2PublicSubnetB
+            Tags:
+              - 
+                Key: "Name"
+                Value: !Sub "${AWS::Region}b-nat-gw"
+              - 
+                Key: "OwnedBy"
+                Value: !Ref EC2VPC
+            AllocationId: !GetAtt EIPAddress2.AllocationId
+
+
+    EC2RouteTablePublicSubnet:
+        Type: "AWS::EC2::RouteTable"
+        Properties:
+            VpcId: !Ref EC2VPC
+            Tags:
+              - 
+                Key: "Name"
+                Value: !Sub "${VpcName}-public-rt"
+              - 
+                Key: "OwnedBy"
+                Value: !Ref EC2VPC
+
+    EC2RouteTablePrivateSubnetA:
+        Type: "AWS::EC2::RouteTable"
+        Properties:
+            VpcId: !Ref EC2VPC
+            Tags:
+              - 
+                Key: "Name"
+                Value: !Sub "${VpcName}-private-a-rt"
+              - 
+                Key: "OwnedBy"
+                Value: !Ref EC2VPC
+
+    EC2RouteTablePrivateSubnetB:
+        Type: "AWS::EC2::RouteTable"
+        Properties:
+            VpcId: !Ref EC2VPC
+            Tags:
+              - 
+                Key: "Name"
+                Value: !Sub "${VpcName}-private-b-rt"
+              - 
+                Key: "OwnedBy"
+                Value: !Ref EC2VPC
+
+    GatewayToInternet:
+      Type: "AWS::EC2::VPCGatewayAttachment"
+      Properties:
+        VpcId: !Ref EC2VPC
+        InternetGatewayId: !Ref EC2InternetGateway
+
+    EC2SubnetRouteTableAssociationPrivateSubnetA:
+        Type: "AWS::EC2::SubnetRouteTableAssociation"
+        Properties:
+            RouteTableId: !Ref EC2RouteTablePrivateSubnetA
+            SubnetId: !Ref EC2PrivateSubnetA
+
+    EC2SubnetRouteTableAssociationPrivateSubnetB:
+        Type: "AWS::EC2::SubnetRouteTableAssociation"
+        Properties:
+            RouteTableId: !Ref EC2RouteTablePrivateSubnetB
+            SubnetId: !Ref EC2PrivateSubnetB
+
+    EC2SubnetRouteTableAssociationPublicSubnetA:
+        Type: "AWS::EC2::SubnetRouteTableAssociation"
+        Properties:
+            RouteTableId: !Ref EC2RouteTablePublicSubnet
+            SubnetId: !Ref EC2PublicSubnetA
+
+    EC2SubnetRouteTableAssociationPublicSubnetB:
+        Type: "AWS::EC2::SubnetRouteTableAssociation"
+        Properties:
+            RouteTableId: !Ref EC2RouteTablePublicSubnet
+            SubnetId: !Ref EC2PublicSubnetB
+
+
+    EC2RouteNATGatewayA:
+        Type: "AWS::EC2::Route"
+        Properties:
+            DestinationCidrBlock: "0.0.0.0/0"
+            NatGatewayId: !Ref EC2NatGatewayA
+            RouteTableId: !Ref EC2RouteTablePrivateSubnetA
+
+    EC2RouteNATGatewayB:
+        Type: "AWS::EC2::Route"
+        Properties:
+            DestinationCidrBlock: "0.0.0.0/0"
+            NatGatewayId: !Ref EC2NatGatewayB
+            RouteTableId: !Ref EC2RouteTablePrivateSubnetB
+    
+    EC2RouteInternetGateway:
+        Type: "AWS::EC2::Route"
+        DependsOn: "GatewayToInternet"
+        Properties:
+            DestinationCidrBlock: "0.0.0.0/0"
+            GatewayId: !Ref EC2InternetGateway
+            RouteTableId: !Ref EC2RouteTablePublicSubnet
