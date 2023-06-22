@@ -1,6 +1,0 @@
-PrivateSubnetACidr	10.167.32.0/19	-
-PrivateSubnetBCidr	10.167.64.0/19	-
-PublicSubnetACidr	10.167.0.0/22	-
-PublicSubnetBCidr	10.167.4.0/22	-
-VpcCidr	10.167.0.0/16	-
-VpcName	test-vpc	-

@@ -1,0 +1,6 @@
+VpcCidr	            10.10.0.0/16	
+VpcName	            my-vpc
+PrivateSubnetACidr	10.10.32.0/19	
+PrivateSubnetBCidr	10.10.64.0/19	
+PublicSubnetACidr	10.10.0.0/22	
+PublicSubnetBCidr	10.10.4.0/22

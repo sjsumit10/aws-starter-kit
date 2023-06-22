@@ -5,16 +5,22 @@ Description: " VPC template - Public and Private subnets with NAT"
 Parameters:
   VpcCidr:
     Type: String
+    Default: 10.10.0.0/16
   VpcName:
     Type: String
+    Default: "my-vpc"
   PublicSubnetACidr:
     Type: String
+    Default: 10.10.0.0/22
   PublicSubnetBCidr:
     Type: String
+    Default: 10.10.4.0/22
   PrivateSubnetACidr:
     Type: String
+    Default: 10.10.32.0/19
   PrivateSubnetBCidr:
     Type: String
+    Default: 10.10.64.0/19
   
 Resources:
     EC2VPC:
