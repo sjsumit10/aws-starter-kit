@@ -1,0 +1,89 @@
+# cluster.yaml
+# A cluster with two managed nodegroups.
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: {{  CLUSTER_NAME }}
+  region: {{ CLUSTER_REGION }}
+  version: {{  CLUSTER_VERSION }}
+
+vpc:
+  id: {{ CLUSTER_VPC_ID }}
+  subnets:
+    private:
+      CLUSTER_REGIONa: 
+        id: {{ CLUSTER_SUBNET_PVT1a }}
+      CLUSTER_REGIONb:
+        id: {{ CLUSTER_SUBNET_PVT1b }}
+    public:
+      CLUSTER_REGIONa:
+        id: {{ CLUSTER_SUBNET_PUB1a }}
+      CLUSTER_REGIONb:
+        id: {{ CLUSTER_SUBNET_PUB1b }}
+iam:
+  serviceRoleARN: {{ CLUSTER_SERVICE_ROLE_ARN }}
+
+managedNodeGroups:
+  - name: app-ng
+    updateConfig:
+      maxUnavailablePercentage: 100
+    ami: {{ CLUSTER_AMI_ID }}
+    amiFamily: AmazonLinux2
+    ssh:
+      allow: true
+      publicKeyName: {{ CLUSTER_SSH_KEY }}
+    iam:
+      instanceRoleARN: {{ WORKER_INSTANCE_ROLE_ARN }}
+    instanceTypes:
+    - m5.2xlarge
+    - m5a.2xlarge
+    volumeSize: 50
+    volumeName: /dev/xvda
+    volumeType: gp3
+    spot: {{ SPOT_NODE }}
+    volumeEncrypted: true
+    # defaults to true, which enforces the use of IMDSv2 tokens
+    disableIMDSv1: false 
+    privateNetworking: true
+    minSize: 1
+    maxSize: 8
+    labels: 
+      role: app
+    tags:
+      Environment: {{ CLUSTER_ENV }}
+      CreatedFor: {{ CLUSTER_NAME }}
+      WorkloadType: eks_worker_node
+      k8s.io/cluster-autoscaler/enabled: "true"
+  - name: default-ng
+    updateConfig:
+      maxUnavailablePercentage: 100
+    ami: {{ CLUSTER_AMI_ID }}
+    amiFamily: AmazonLinux2
+    ssh:
+      allow: true
+      publicKeyName: {{ CLUSTER_SSH_KEY }}
+    iam:
+      instanceRoleARN: {{ WORKER_INSTANCE_ROLE_ARN }}
+    instanceTypes:
+    - m5.2xlarge
+    - m5a.2xlarge
+    volumeSize: 50
+    volumeName: /dev/xvda
+    volumeType: gp3
+    spot: {{ SPOT_NODE }}
+    minSize: 1
+    maxSize: 4
+    volumeEncrypted: true
+    # defaults to true, which enforces the use of IMDSv2 tokens
+    disableIMDSv1: false 
+    privateNetworking: true
+    labels: 
+      role: default
+    tags:
+      Environment: {{ CLUSTER_ENV }}
+      CreatedFor: {{ CLUSTER_NAME }}
+      WorkloadType: eks_worker_node
+      k8s.io/cluster-autoscaler/enabled: "true"
+ 
