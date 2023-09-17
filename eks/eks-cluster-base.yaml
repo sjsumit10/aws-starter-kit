@@ -23,13 +23,12 @@ vpc:
       CLUSTER_REGIONb:
         id: {{ CLUSTER_SUBNET_PUB1b }}
 iam:
-  serviceRoleARN: {{ CLUSTER_SERVICE_ROLE_ARN }}
+  withOIDC: true  
 
 managedNodeGroups:
   - name: app-ng
     updateConfig:
       maxUnavailablePercentage: 100
-    ami: {{ CLUSTER_AMI_ID }}
     amiFamily: AmazonLinux2
     ssh:
       allow: true
@@ -59,7 +58,6 @@ managedNodeGroups:
   - name: default-ng
     updateConfig:
       maxUnavailablePercentage: 100
-    ami: {{ CLUSTER_AMI_ID }}
     amiFamily: AmazonLinux2
     ssh:
       allow: true
@@ -86,4 +84,18 @@ managedNodeGroups:
       CreatedFor: {{ CLUSTER_NAME }}
       WorkloadType: eks_worker_node
       k8s.io/cluster-autoscaler/enabled: "true"
+
+addons:
+- name: vpc-cni
+  attachPolicyARNs:
+    - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+  resolveConflicts: overwrite
+- name: coredns
+  version: latest
+  configurationValues: "{\"replicaCount\":3}"
+  resolveConflicts: overwrite
+- name: kube-proxy
+  version: latest
+  resolveConflicts: overwrite
+
  

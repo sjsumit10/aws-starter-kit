@@ -14,10 +14,15 @@ Create env-name.env file and fill values of all variables
 
 Sample file generate.env is present in  root of repo
 
-## Create cluster -->
+## Create/update cluster -->
 
-`bash setup.sh env_name cluster`
+`bash setup.sh env_name create cluster`
 
-## Create nodegroups -->
+`bash setup.sh env_name update cluster`
 
-`bash setup.sh env_name nodegroup`
+
+## Create/update nodegroups -->
+
+`bash setup.sh env_name create nodegroup`
+
+`bash setup.sh env_name update nodegroup`
